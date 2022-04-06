@@ -1,5 +1,5 @@
 {
-    "name": "spatie/laravel-webhook-client",
+    "name": "kbv-vcos/laravel-webhook-client",
     "description": "Receive webhooks in Laravel apps",
     "keywords": [
         "spatie",
