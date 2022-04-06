@@ -11,6 +11,8 @@ use Symfony\Component\HttpFoundation\Response;
 
 class WebhookProcessor
 {
+    protected WebhookCall $webhookCall;
+
     public function __construct(
         protected Request $request,
         protected WebhookConfig $config
@@ -25,7 +27,7 @@ class WebhookProcessor
             return $this->createResponse();
         }
 
-        $webhookCall = $this->storeWebhook();
+        $this->webhookCall = $webhookCall = $this->storeWebhook();
 
         $this->processWebhook($webhookCall);
 
@@ -65,6 +67,6 @@ class WebhookProcessor
 
     protected function createResponse(): Response
     {
-        return $this->config->webhookResponse->respondToValidWebhook($this->request, $this->config);
+        return $this->config->webhookResponse->respondToValidWebhook($this->request, $this->config, $this->webhookCall);
     }
 }
