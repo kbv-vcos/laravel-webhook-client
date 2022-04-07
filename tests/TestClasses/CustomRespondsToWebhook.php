@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Spatie\WebhookClient\WebhookConfig;
 use Spatie\WebhookClient\WebhookResponse\RespondsToWebhook;
 use Symfony\Component\HttpFoundation\Response;
+use Spatie\WebhookClient\Models\WebhookCall;
 
 class CustomRespondsToWebhook implements RespondsToWebhook
 {
