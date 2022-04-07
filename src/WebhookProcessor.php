@@ -60,12 +60,12 @@ class WebhookProcessor
             $job = new $this->config->processWebhookJobClass($webhookCall);
 
             $webhookCall->clearException();
-
             $name = (new ReflectionClass($this))->getShortName();
+            $jobName = (new ReflectionClass($this->config->processWebhookJobClass))->getShortName();
             $queue = config("webhook-client.configs.{$this->config->name}.queue", 'default');
             $author = config("webhook-client.configs.{$this->config->name}.author", 'default');
             $user = User::query()->where('username', $author)->first();
-            $batch = Bus::batch([$job])->name("{$name}#{$webhookCall->id}")->onQueue($queue)->dispatch();
+            $batch = Bus::batch([$job])->name("{$name}-{$jobName}#{$webhookCall->id}")->onQueue($queue)->dispatch();
             JobBatch::postProcess($batch->id, ['idCreatedBy' => $user->id]);
         } catch (Exception $exception) {
             $webhookCall->saveException($exception);
