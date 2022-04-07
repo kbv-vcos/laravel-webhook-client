@@ -2,6 +2,7 @@
 
 namespace Spatie\WebhookClient\Jobs;
 
+use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -15,6 +16,7 @@ abstract class ProcessWebhookJob implements ShouldQueue
     use InteractsWithQueue;
     use Queueable;
     use SerializesModels;
+    use Batchable;
 
     public function __construct(
         public WebhookCall $webhookCall

@@ -4,6 +4,10 @@ namespace Spatie\WebhookClient;
 
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Bus;
+use Illuminate\Foundation\Auth\User;
+use MES\Core\S018JobBatch\Models\JobBatch;
+use ReflectionClass;
 use Spatie\WebhookClient\Events\InvalidWebhookSignatureEvent;
 use Spatie\WebhookClient\Exceptions\InvalidWebhookSignature;
 use Spatie\WebhookClient\Models\WebhookCall;
@@ -57,7 +61,12 @@ class WebhookProcessor
 
             $webhookCall->clearException();
 
-            dispatch($job);
+            $name = (new ReflectionClass($this))->getShortName();
+            $queue = config("webhook-client.configs.{$this->config->name}.queue", 'default');
+            $author = config("webhook-client.configs.{$this->config->name}.author", 'default');
+            $user = User::query()->where('username', $author)->first();
+            $batch = Bus::batch([$job])->name("{$name}#{$webhookCall->id}")->onQueue($queue)->dispatch();
+            JobBatch::postProcess($batch->id, ['idCreatedBy' => $user->id]);
         } catch (Exception $exception) {
             $webhookCall->saveException($exception);
 
