@@ -8,7 +8,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class DefaultRespondsTo implements RespondsToWebhook
 {
-    public function respondToValidWebhook(Request $request, WebhookConfig $config): Response
+    public function respondToValidWebhook(Request $request, WebhookConfig $config, WebhookCall $webhookCall): Response
     {
         return response()->json(['message' => 'ok']);
     }

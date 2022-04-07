@@ -9,7 +9,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class CustomRespondsToWebhook implements RespondsToWebhook
 {
-    public function respondToValidWebhook(Request $request, WebhookConfig $config): Response
+    public function respondToValidWebhook(Request $request, WebhookConfig $config, WebhookCall $webhookCall): Response
     {
         return response()->json(['foo' => 'bar']);
     }
