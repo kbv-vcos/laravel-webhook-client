@@ -78,4 +78,9 @@ class WebhookProcessor
     {
         return $this->config->webhookResponse->respondToValidWebhook($this->request, $this->config, $this->webhookCall);
     }
+
+    public function recallWebhook(WebhookCall $webhookCall): void
+    {
+        $this->processWebhook($webhookCall);
+    }
 }
