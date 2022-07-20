@@ -4,8 +4,8 @@ namespace Spatie\WebhookClient;
 
 use Exception;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Bus;
-use Illuminate\Foundation\Auth\User;
+use Illuminate\Support\Arr;
+use MES\Core\S005User\Models\User;
 use MES\Core\S018JobBatch\Models\JobBatch;
 use ReflectionClass;
 use Spatie\WebhookClient\Events\InvalidWebhookSignatureEvent;
@@ -62,11 +62,11 @@ class WebhookProcessor
             $webhookCall->clearException();
             $name = (new ReflectionClass($this))->getShortName();
             $jobName = (new ReflectionClass($this->config->processWebhookJobClass))->getShortName();
-            $queue = config("webhook-client.configs.{$this->config->name}.queue", 'default');
-            $author = config("webhook-client.configs.{$this->config->name}.author", 'default');
+            $queue = $this->queueAllocated($webhookCall);
+            $author = config("webhook-client.configs.{$this->config->name}.author", '080383');
             $user = User::query()->where('username', $author)->first();
-            $batch = Bus::batch([$job])->name("{$name}-{$jobName}#{$webhookCall->id}")->onQueue($queue)->dispatch();
-            JobBatch::postProcess($batch->id, ['idCreatedBy' => $user->id]);
+            $name = "{$name}-{$jobName}#{$webhookCall->id}";
+            JobBatch::createBatch($user, [$job], $name, $queue);
         } catch (Exception $exception) {
             $webhookCall->saveException($exception);
 
@@ -82,5 +82,22 @@ class WebhookProcessor
     public function recallWebhook(WebhookCall $webhookCall): void
     {
         $this->processWebhook($webhookCall);
+    }
+
+    public function queueAllocated(WebhookCall $webhookCall): string
+    {
+        $queue = config("webhook-client.configs.{$this->config->name}.queue", 'isap0');
+        if (Arr::has($webhookCall->payload, 'data.ZPP_LOIPRO04.IDOC.E1AFKOL.AUFNR')) {
+            $workOrderNumber = Arr::get($webhookCall->payload, 'data.ZPP_LOIPRO04.IDOC.E1AFKOL.AUFNR');
+            $queue = ISAPQueueAllocated::getQueueName($workOrderNumber);
+        } else {
+            $data = Arr::has($webhookCall->payload, 'data') ? Arr::get($webhookCall->payload, 'data') : [];
+            $rootSelector = key($data);
+            if (Arr::has($webhookCall->payload, "data.{$rootSelector}.IDOC.E1EDK01.BELNR")) {
+                $po = Arr::get($webhookCall->payload, "data.{$rootSelector}.IDOC.E1EDK01.BELNR");
+                $queue = ISAPQueueAllocated::getQueueName($po);
+            }
+        }
+        return $queue;
     }
 }
