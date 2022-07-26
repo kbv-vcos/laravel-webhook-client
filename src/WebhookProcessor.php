@@ -89,7 +89,9 @@ class WebhookProcessor
         $queue = config("webhook-client.configs.{$this->config->name}.queue", 'isap0');
         if (Arr::has($webhookCall->payload, 'data.ZPP_LOIPRO04.IDOC.E1AFKOL.AUFNR')) {
             $workOrderNumber = Arr::get($webhookCall->payload, 'data.ZPP_LOIPRO04.IDOC.E1AFKOL.AUFNR');
-            $queue = ISAPQueueAllocated::getQueueName($workOrderNumber);
+            $soNumber = Arr::get($webhookCall->payload, 'data.ZPP_LOIPRO04.IDOC.E1AFKOL.KDAUF');
+            $orderNumber = is_null($soNumber) ? $workOrderNumber : $soNumber;
+            $queue = ISAPQueueAllocated::getQueueName($orderNumber);
         } else {
             $data = Arr::has($webhookCall->payload, 'data') ? Arr::get($webhookCall->payload, 'data') : [];
             $rootSelector = key($data);
